@@ -1,9 +1,12 @@
 # GPT.lua
+# This is a fork of [ConnorSwis's GPT.lua](https://github.com/ConnorSwis/GPT.lua/) built to work with [Advanced Peripherals](https://www.curseforge.com/minecraft/mc-mods/advanced-peripherals) ChatBox
+
 
 ChatGPT Interface for Computercraft Computers
 
 ### Author
-Connor J. Swislow
+Connor J. Swislow,
+Bluemethyst
 
 ### License
 Unlicense (public domain dedication)
@@ -14,13 +17,6 @@ GPT.lua is a Lua script designed for Computercraft computers, providing an inter
 ## Requirements
 - OpenAI API key: To use this program, you need to have an OpenAI API key. Make sure to obtain one before running the script.
 - Computercraft: This script is designed to run within the Computercraft mod for Minecraft. Ensure that you have Computercraft installed and running on your Minecraft server or local game.
-
-## Installation
-1. Open a Computercraft computer in your Minecraft world.
-2. Run the following command to download the GPT.lua script from Pastebin:
-   
-   `pastebin get M9YsgDES startup`
-3. Restart the Computercraft computer to initialize the program.
 
 ## Usage
 1. After the program has been installed and the computer has restarted, it will prompt you to enter your OpenAI API key.
@@ -35,4 +31,4 @@ GPT.lua is a Lua script designed for Computercraft computers, providing an inter
 - Use the GPT-3.5 Turbo model for generating responses. Adjust the 'model' variable in the script if you want to use a different model.
 
 ## Credits:
-This program is based on the OpenAI GPT-3.5 language model and was created by Connor J. Swislow.
+This program is based on the OpenAI GPT-3.5 language model and was created by Connor J. Swislow. Forked by Bluemethyst to work with AdvancedPeripherals ChatBox
