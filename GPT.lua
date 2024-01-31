@@ -39,8 +39,11 @@ This program is based on the OpenAI GPT-3.5 language model and was created by Co
 
 -- Set the OpenAI API key and other configurations
 local OPENAI_KEY = settings.get("OPENAI_KEY") -- Retrieve the OpenAI key from the settings
-local maxTokens = 100 -- Maximum number of tokens for API completion
+local maxTokens = 250 -- Maximum number of tokens for API completion
 local model = "gpt-3.5-turbo" -- Language model to use
+local chatBox = peripheral.find("chatBox")
+local whitelistedPlayers = settings.get("WHITELISTED_PLAYERS")
+
 
 -- If no OpenAI key is found, prompt the user to enter it
 if not OPENAI_KEY then
@@ -50,6 +53,9 @@ if not OPENAI_KEY then
     settings.save()
     term.clear()
 end
+
+
+
 
 -- Program titles
 local titles =
@@ -110,69 +116,78 @@ local function gradual_print(data)
     io.write("\n")
 end
 
+local function output_to_chat(data)
+    chatBox.sendMessage("§a"..data, "§bBlue's GPT", '[]', '§6')
+end
 -- Print the chatbot title with random colors
 print_with_random_colors(title)
 print("\nType 'exit' to exit.\n")
 
-local messages = {} -- Store user and system messages
+local messages = {{role = "system", content = "You are an ai assistant inside a Minecraft Server that helps minecraft players solve problems"}} -- Store user and system messages
 
 while true do
-    print_with_color("[Me]: ", colors.magenta)
-    local prompt = io.read()
 
-    if prompt == "exit" then
-        break -- Exit the loop if the user types 'exit'
-    end
-
-    -- Add user message to the messages table
-    table.insert(messages, {
-        role = "user",
-        content = prompt
-    })
-
-    -- Prepare the payload as JSON for the API request
-    local payloadJson = textutils.serializeJSON({
-        ["model"] = model,
-        ["max_tokens"] = maxTokens,
-        ["messages"] = messages
-    })
-
-    local requesting = true
-    -- Send an HTTP POST request to the OpenAI API endpoint
-    http.request(endpoint, payloadJson, headers)
-    print_with_color("[GPT]: ", colors.lime)
-    while requesting do
-        io.write(".")
-        local event, url, sourceText = os.pullEvent()
-
-        if event == "http_success" then
-            local responseBody = sourceText.readAll()
-            sourceText.close()
-            
-            -- Parse the JSON response from the API
-            local responseJson = textutils.unserializeJSON(responseBody)
-            
-            if responseJson and responseJson.choices and responseJson.choices[1] then
-                local generatedText = responseJson.choices[1].message.content
-
-                -- Add system-generated message to the messages table
+    local event, username, message, uuid, isHidden = os.pullEvent("chat")
+    if event then
+        if username == "MurderinClony" or username == "Bluemethyst" or username == "Skydyv" then
+            if string.sub(message, 1, 7) == "askgpt " then
+                Prompt = string.sub(message, 8)
+                print_with_color("["..username.."]: ", colors.magenta)
+                -- Add user message to the messages table
                 table.insert(messages, {
-                    role = "system",
-                    content = generatedText
+                    role = "user",
+                    content = Prompt
                 })
-                local _, y = term.getCursorPos()
-                term.setCursorPos(1, y)
-                term.clearLine()
+                print(Prompt)
+            
+                -- Prepare the payload as JSON for the API request
+                local payloadJson = textutils.serializeJSON({
+                    ["model"] = model,
+                    ["max_tokens"] = maxTokens,
+                    ["messages"] = messages
+                })
+            
+                local requesting = true
+                -- Send an HTTP POST request to the OpenAI API endpoint
+                http.request(endpoint, payloadJson, headers)
                 print_with_color("[GPT]: ", colors.lime)
-                gradual_print(generatedText)
-            else
-                print("Error: Failed to get a valid response.")
+                while requesting do
+                    io.write(".")
+                    local event, url, sourceText = os.pullEvent()
+            
+                    if event == "http_success" then
+                        local responseBody = sourceText.readAll()
+                        sourceText.close()
+                        
+                        -- Parse the JSON response from the API
+                        local responseJson = textutils.unserializeJSON(responseBody)
+                        
+                        if responseJson and responseJson.choices and responseJson.choices[1] then
+                            local generatedText = responseJson.choices[1].message.content
+            
+                            -- Add system-generated message to the messages table
+                            table.insert(messages, {
+                                role = "system",
+                                content = generatedText
+                            })
+                            local _, y = term.getCursorPos()
+                            term.setCursorPos(1, y)
+                            term.clearLine()
+                            print_with_color("[GPT]: ", colors.lime)
+                            output_to_chat(generatedText)
+                            gradual_print(generatedText)
+                        else
+                            print("Error: Failed to get a valid response.")
+                        end
+            
+                        requesting = false -- Stop the loop, response received
+                    elseif event == "http_failure" then
+                        print("Server didn't respond.")
+                        print(event)
+                        requesting = false -- Stop the loop, server failure
+                    end
+                end
             end
-
-            requesting = false -- Stop the loop, response received
-        elseif event == "http_failure" then
-            print("Server didn't respond.")
-            requesting = false -- Stop the loop, server failure
         end
     end
 end
